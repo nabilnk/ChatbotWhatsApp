@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
+import com.chatbot.service.WebhookServer;
 
 public class MainFrame extends JFrame {
 
@@ -39,43 +40,53 @@ public class MainFrame extends JFrame {
         loadHistoryData();
     }
 
-private void initComponents() {
-    setLayout(new GridBagLayout());
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(5, 5, 5, 5);
-    gbc.fill = GridBagConstraints.BOTH;
-
-    // --- BARIS 1: Panel Kelola Member & Tabel Member ---
-    gbc.gridx = 0; gbc.gridy = 0;
-    gbc.weightx = 0.4; 
-    gbc.weighty = 0.0; // DIUBAH: Set weighty ke 0.0 agar panel tidak membesar secara vertikal
-    gbc.anchor = GridBagConstraints.NORTH; // Tambahkan ini agar panel "menempel" ke atas
-    add(createKelolaMemberPanel(), gbc);
+    private void initComponents() {
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.BOTH;
     
-    gbc.gridx = 1; gbc.gridy = 0; gbc.gridheight = 2; // Buat tabel membentang 2 baris (tinggi)
-    gbc.weightx = 0.6; gbc.weighty = 0.4; // Beri ruang vertikal lebih banyak ke tabel
-    gbc.anchor = GridBagConstraints.CENTER; // Reset anchor
-    add(createDataMemberPanel(), gbc);
-
-    // --- BARIS 2: Panel Broadcast & Simulasi ---
-    gbc.gridx = 0; gbc.gridy = 1;
-    gbc.gridheight = 1; // Reset gridheight
-    gbc.weightx = 0.4; 
-    gbc.weighty = 0.1; // Beri sedikit ruang vertikal untuk panel broadcast
-    add(createBroadcastPanel(), gbc);
-
-    // --- BARIS 3: Panel History & Tombol Aksi ---
-    gbc.gridx = 0; gbc.gridy = 2;
-    gbc.gridwidth = 2; // Membentang 2 kolom
-    gbc.weightx = 1.0; gbc.weighty = 0.5; // Panel history mengambil sisa ruang vertikal
-    add(createHistoryPanel(), gbc);
-
-    gbc.gridx = 0; gbc.gridy = 3;
-    gbc.gridwidth = 2;
-    gbc.weighty = 0.0; // Tinggi tetap
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    add(createBottomActionPanel(), gbc);
-}
+        // --- Kolom Kiri ---
+        // Panel Kelola Member (Baris 0)
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.weightx = 0.4; gbc.weighty = 0.1;
+        gbc.anchor = GridBagConstraints.NORTH;
+        add(createKelolaMemberPanel(), gbc);
+    
+        // Panel Broadcast (Baris 1)
+        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.weighty = 0.3; // Beri ruang lebih untuk area teks broadcast
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(createBroadcastPanel(), gbc);
+    
+        // --- [FIX] Panel Simulasi Ditambahkan di sini (Baris 2) ---
+        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.weighty = 0.0; // Tidak perlu membesar secara vertikal
+        gbc.anchor = GridBagConstraints.SOUTH; // Letakkan di bagian bawah selnya
+        add(createSimulasiPanel(), gbc);
+        
+        // --- Kolom Kanan ---
+        // Panel Tabel Member (Membentang 3 baris di kanan)
+        gbc.gridx = 1; gbc.gridy = 0;
+        gbc.gridheight = 3; // --- [FIX] Dibuat membentang 3 baris agar sejajar dengan 3 panel di kiri
+        gbc.weightx = 0.6; gbc.weighty = 0.4;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(createDataMemberPanel(), gbc);
+    
+        // --- Panel Bawah (Lebar) ---
+        // Panel History
+        gbc.gridx = 0; gbc.gridy = 3; // --- [FIX] Pindah ke baris 3
+        gbc.gridheight = 1; // Reset gridheight
+        gbc.gridwidth = 2;  // Membentang 2 kolom
+        gbc.weightx = 1.0; gbc.weighty = 0.6; // Panel history mengambil sisa ruang vertikal
+        add(createHistoryPanel(), gbc);
+    
+        // Panel Tombol Aksi
+        gbc.gridx = 0; gbc.gridy = 4; // --- [FIX] Pindah ke baris 4
+        gbc.weighty = 0.0; // Tinggi tetap
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        add(createBottomActionPanel(), gbc);
+    }
     
     // --- METHOD UNTUK MEMBUAT SETIAP PANEL ---
 
@@ -316,6 +327,18 @@ private void broadcastAction() {
     }
 
     public static void main(String[] args) {
+               try {
+            // Kita butuh instance BotService untuk diberikan ke server
+            BotService service = new BotService(); 
+            // Jalankan server di port 8080 (bisa diganti)
+            WebhookServer server = new WebhookServer(8090, service); 
+            server.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal menjalankan Webhook Server: " + e.getMessage(), "Error Kritis", JOptionPane.ERROR_MESSAGE);
+            return; // Hentikan aplikasi jika server gagal start
+        }
+               
         EventQueue.invokeLater(() -> new MainFrame().setVisible(true));
     }
 }

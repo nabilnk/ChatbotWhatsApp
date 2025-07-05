@@ -133,7 +133,7 @@ public String processAndReplyMessage(String sender, String message) {
     // ==========================================================
     String hardcodedReply = "tes balasan dari simulasi"; // Pesan sederhana tanpa karakter aneh
     System.out.println("    MENGIRIM PESAN HARDCODED: '" + hardcodedReply + "'");
-    sendRealMessage(sender, hardcodedReply); // KIRIM PESAN INI, BUKAN DARI DB
+    sendRealMessage(sender, replyMessageFromDB); // KIRIM PESAN INI, BUKAN DARI DB
     // ==========================================================
 
     return replyMessageFromDB; // Kita tetap kembalikan pesan asli untuk ditampilkan di log GUI
